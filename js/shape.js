@@ -154,7 +154,10 @@ function createLineChart() {
                     min: 0,
                     max: 400,
                     ticks: {
-                        stepSize: 50  // Optional: defines the tick interval
+                        stepSize: 10  // Optional: defines the tick interval
+                        callback: function(value) {
+                            // Only display the label if the value is divisible by 10
+                            return value % 10 === 0 ? value : '';
                     }
                 }
             }
