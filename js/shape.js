@@ -103,6 +103,13 @@ function filterByDecade() {
         filteredData = sightingsData;
     }
 
+    // CRITICAL FIX: Recalculate shapeFrequencies here!
+    shapeFrequencies = {};
+    filteredData.forEach(sighting => {
+        const shape = sighting.shape ? sighting.shape.trim().toLowerCase() : "unknown";
+        shapeFrequencies[shape] = (shapeFrequencies[shape] || 0) + 1;
+    });
+
     updateLineChart(filteredData);
     updatePieChart(filteredData);
     updateHovercrafts(currentPopularity);
