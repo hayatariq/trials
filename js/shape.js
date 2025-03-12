@@ -109,7 +109,7 @@ function createPieChart() {
         updatePieChart(this.value);
     });
 
-    updatePieChart("All");
+    updatePieChart(sightingsData);
 }
 
 
