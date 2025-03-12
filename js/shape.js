@@ -156,6 +156,14 @@ function createLineChart() {
                     ticks: {
                         stepSize: 50  // Optional: defines the tick interval
                     }
+                },
+                x: {
+                    ticks: {
+                        callback: function(value) {
+                            const year = this.getLabelForValue(value);
+                            return year % 10 === 0 ? year : '';
+                        }
+                    }
                 }
             }
         }
