@@ -1,4 +1,3 @@
-document.addEventListener("DOMContentLoaded", function() {
 // Initialize the Leaflet map
 var map = L.map('map', {
     center: [56.1304, -106.3468],  // Center the map on Canada
@@ -254,5 +253,4 @@ function addSightingsToMap(sightingsData, viewType) {
 
         markersLayer.addLayer(marker);
     });
-}
 }
