@@ -105,9 +105,7 @@ function createPieChart() {
         slices.exit().remove();
     }
 
-    document.getElementById("decade-dropdown-shape").addEventListener("change", function() {
-        updatePieChart(this.value);
-    });
+    document.getElementById("decade-dropdown-shape").addEventListener("change", filterByDecade);
 
     updatePieChart(sightingsData);
 }
