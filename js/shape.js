@@ -63,11 +63,17 @@ function createPieChart() {
         .style("font-size", "14px");
 
     function updatePieChart(decade) {
-        const filteredData = sightingsData.filter(d => {
-            const year = d.year;
-            return decade === "All" || (year >= parseInt(decade) && year < parseInt(decade) + 10);
-        });
+        let filteredData;
 
+        if (decade === "1960") {
+            filteredData = sightingsData.filter(d => d.year < 1970); // <-- FIXED: includes all before 1970
+        } else if (decade !== "All") {
+            const decadeStart = parseInt(decade);
+            filteredData = sightingsData.filter(d => d.year >= decadeStart && d.year < decadeStart + 10);
+        } else {
+            filteredData = sightingsData;
+        }
+        
         let shapeCounts = {};
         filteredData.forEach(d => {
             const shape = d.shape ? d.shape.trim().toLowerCase() : "unknown";
