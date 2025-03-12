@@ -62,18 +62,7 @@ function createPieChart() {
         .style("visibility", "hidden")
         .style("font-size", "14px");
 
-    function updatePieChart(decade) {
-        let filteredData;
-
-        if (decade === "1960") {
-            filteredData = sightingsData.filter(d => d.year < 1970); // <-- FIXED: includes all before 1970
-        } else if (decade !== "All") {
-            const decadeStart = parseInt(decade);
-            filteredData = sightingsData.filter(d => d.year >= decadeStart && d.year < decadeStart + 10);
-        } else {
-            filteredData = sightingsData;
-        }
-        
+    function updatePieChart(filteredData) {
         let shapeCounts = {};
         filteredData.forEach(d => {
             const shape = d.shape ? d.shape.trim().toLowerCase() : "unknown";
@@ -238,6 +227,7 @@ function filterByDecade() {
         shapeFrequencies[sighting.shape] = (shapeFrequencies[sighting.shape] || 0) + 1;
     });
 
+    updatePieChart(filteredData)
     updateHovercrafts(currentPopularity);
     
     // Update the pop culture text based on the selected decade
