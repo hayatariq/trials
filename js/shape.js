@@ -125,24 +125,27 @@ function createLineChart() {
         sightingsByYear[year] = (sightingsByYear[year] || 0) + 1;
     });
 
-    const minYear = 1920; 
-    const maxYear = 2025;
+    const minYear = 1914, maxYear = 2025;
     const allYears = Array.from({length: maxYear - minYear + 1}, (_, i) => minYear + i);
+    
+    const chartData = {
+        labels: allYears,
+        datasets: [{
+            label: 'Number of Sightings',
+            data: allYears.map(year => sightingsByYear[year] || 0),
+            borderColor: '#FF5733',
+            backgroundColor: 'rgba(255, 87, 51, 0.2)',
+            fill: true,
+            tension: 0.4,
+        }]
+    };
+
+    console.log("line-chart canvas:", document.getElementById('line-chart'));
 
     const ctx = document.getElementById('line-chart').getContext('2d');
-    const lineChart = new Chart(ctx, {
+    lineChart = new Chart(ctx, {
         type: 'line',
-        data: {
-            labels: allYears,
-            datasets: [{
-                label: 'Number of Sightings',
-                data: allYears.map(year => sightingsByYear[year] || 0),
-                borderColor: '#FF5733',
-                backgroundColor: 'rgba(255, 87, 51, 0.2)',
-                fill: true,
-                tension: 0.4,
-            }]
-        },
+        data: chartData,
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -151,21 +154,14 @@ function createLineChart() {
                     min: 0,
                     max: 400,
                     ticks: {
-                        stepSize: 50
-                    }
-                },
-                x: {
-                    ticks: {
-                        callback: function(value) {
-                            const year = this.getLabelForValue(value);
-                            return year % 10 === 0 ? year : '';
-                        }
+                        stepSize: 50  // Optional: defines the tick interval
                     }
                 }
             }
         }
     });
     
+
     updateHovercrafts(currentPopularity);
 }
 
