@@ -1,0 +1,87 @@
+/* Global styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Header styling */
+header {
+    text-align: center;
+    padding: 20px 0;
+}
+
+/* Top controls styling */
+#top-controls {
+    text-align: center;
+    margin: 20px 0;
+}
+
+#view-controls {
+    margin-bottom: 10px;
+}
+
+/* Main content layout: using flexbox to arrange map and filters side-by-side */
+#main-content-map {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;  /* Aligns items at the top */
+    gap: 20px;  /* Optional spacing between the map and filter container */
+}
+  
+
+/* Adjust map container to shift map slightly to the left */
+#map-container {
+    margin-right: 20px;
+}
+
+/* Filter container styling */
+#filter-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 20px;
+}
+
+/* Map styling */
+#map {
+    background-color: white;
+}
+
+/* Styling for the filter dropdowns */
+#witnesses-filter, #ships-filter {
+    text-align: left;
+}
+
+/* Decade controls styling */
+#decade-controls {
+    text-align: center;
+    margin: 10px 0;
+}
+
+#view-controls {
+    margin-bottom: 20px;  /* Adjust the value as needed */
+  }
+  
+
+/* Existing button styling */
+.view-btn {
+    padding: 10px 20px;
+    margin: 0 10px;
+    font-size: 16px;
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.view-btn:hover {
+    background-color: #ddd;
+}
+
+.view-btn.active {
+    background-color: #333;
+    color: white;
+}
+
+/* Other existing styles remain unchanged */

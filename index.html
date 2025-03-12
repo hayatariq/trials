@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>CS316 - Final Project</title>
+		
+		<!-- Bootstrap & Leaflet CSS -->
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+		
+		<!-- Custom CSS -->
+		<link rel="stylesheet" href="css/clock.css">
+		<link rel="stylesheet" href="css/map.css">
+		<link rel="stylesheet" href="css/shape.css">
+	</head>
+	<body>
+		<!-- UFO Clock Section -->
+		<div class="col" id="dailyReports">
+			<h2>UFO Clock</h2>
+			<div class="clock-container">
+				<svg id="clock" width="300" height="300"></svg>
+			</div>
+			<div class="controls">
+				<button class="button" id="play">Play</button>
+				<span class="time-display" id="time-display">12 AM</span>
+				<button class="button" id="reset">Reset</button>
+			</div>
+		</div>
+		
+		<!-- Witnesses Visualization Section -->
+		<div id="witnessesChart">
+			<h2>Witnesses Visualization</h2>
+		</div>
+		
+		<!-- Map Visualization Section (from map.html) -->
+		<section id="mapSection">
+			<header>
+			<h1>Tracking UFO Sightings</h1>
+			<h3>Dive into historical trends and witness details in Canada’s mysterious encounters</h3>
+			</header>
+			<div id="top-controls">
+				<div id="view-controls">
+					<button id="all-reports-btn" class="view-btn" onclick="changeView('all')">All Reports</button>
+					<button id="observers-btn" class="view-btn" onclick="changeView('observers')">View by Observers</button>
+					<button id="ships-btn" class="view-btn" onclick="changeView('ships')">View by Ships</button>
+				</div>
+				<div id="decade-controls-map">
+					<label for="decade-dropdown-map">Select Decade:</label>
+					<select id="decade-dropdown-map" onchange="filterSightings()">
+						<option value="all">All Reports</option>
+						<option value="1960">1960s and prior</option>
+						<option value="1970">1970s</option>
+						<option value="1980">1980s</option>
+						<option value="1990">1990s</option>
+						<option value="2000">2000s</option>
+						<option value="2010">2010s</option>
+						<option value="2020">2020s</option>
+					</select>
+					<span id="decade-label-map" style="display: none;">1960s and prior</span>
+				</div>
+			</div>
+			<div id="main-content-map">
+				<div id="map-container">
+					<div id="map" style="width: 600px; height: 500px;"></div>
+				</div>
+				<div id="filter-container">
+					<div id="witnesses-filter">
+						<label for="witnesses-dropdown">Filter by Number of Observers:</label>
+						<select id="witnesses-dropdown" onchange="filterSightings()">
+							<option value="all">All</option>
+							<option value="solo">Solo</option>
+							<option value="small-group">Small Group (2-5)</option>
+							<option value="crowd">Crowd (6+)</option>
+						</select>
+					</div>
+					<div id="ships-filter">
+						<label for="ships-dropdown">Filter by Number of Ships:</label>
+						<select id="ships-dropdown" onchange="filterSightings()">
+							<option value="all">All</option>
+							<option value="solo">Solo (1 ship)</option>
+							<option value="small-group">Small Group (2-5 ships)</option>
+							<option value="crowd">Crowd (6+ ships)</option>
+						</select>
+					</div>
+				</div>
+			</div>
+		</section>
+		
+		<!-- Shape Visualization Section (from shape.html) -->
+		<section id="shapeSection">
+			<div id="page-title">
+				<h1>A Decade-by-Decade Analysis of Encounters and Cultural Impact</h1>
+			</div>
+			<div id="main-content-shape">
+				<div id="line-chart-container">
+					<canvas id="line-chart"></canvas>
+				</div>
+				<div id="decade-controls-shape">
+					<label for="decade-dropdown-shape">Select Decade:</label>
+					<select id="decade-dropdown-shape" onchange="filterByDecade()">
+						<option value="All">All Reports</option>
+						<option value="1960">1960s and prior</option>
+						<option value="1970">1970s</option>
+						<option value="1980">1980s</option>
+						<option value="1990">1990s</option>
+						<option value="2000">2000s</option>
+						<option value="2010">2010s</option>
+						<option value="2020">2020s</option>
+					</select>
+					<span id="decade-label-shape" style="display: none;">1960s and prior</span>
+				</div>
+			</div>
+			
+			<div id="content-container">
+				<div id="left-section">
+					<div id="popularity-section">
+						<div id="buttons-column">
+							<button id="most-popular" class="popularity-button">Most Popular</button>
+							<button id="least-popular" class="popularity-button">Least Popular</button>
+						</div>
+						<div id="hovercrafts-column">
+							<div id="shape-1" class="hovercraft-wrapper">
+								<div class="hovercraft">
+									<div class="tooltip"></div>
+								</div>
+							</div>
+							<div id="shape-2" class="hovercraft-wrapper">
+								<div class="hovercraft">
+									<div class="tooltip"></div>
+								</div>
+							</div>
+							<div id="shape-3" class="hovercraft-wrapper">
+								<div class="hovercraft">
+									<div class="tooltip"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div id="pie-chart-container">
+						<svg id="pie-chart" width="300" height="300"></svg>
+					</div>
+				</div>
+				<div id="pop-culture-text">
+					<h3>Pop Culture References</h3>
+					<p>Insert your pop culture commentary or text here...</p>
+				</div>
+			</div>
+		</section>
+		
+		<!-- JavaScript Libraries -->
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+		<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<script src="https://d3js.org/d3.v6.min.js"></script>
+		
+		<!-- Custom JS -->
+		<script src="js/clock.js"></script>
+		<script src="js/map.js"></script>
+		<script src="js/shape.js"></script>
+	</body>
+</html>

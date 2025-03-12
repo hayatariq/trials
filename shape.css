@@ -1,0 +1,193 @@
+/* Title styling */
+#page-title {
+    text-align: center;
+    margin: 20px 0;
+}
+
+#page-title h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+}
+
+#line-chart-container {
+    height: 400px; /* Adjust as needed */
+}
+#line-chart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Centered dropdown decade filter styling */
+#decade-controls-shape {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+}
+  
+
+/* Main container to hold left and right columns */
+#content-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+/* Left column containing popularity and pie chart sections */
+#left-section {
+    width: 500px; /* Adjust this width as needed */
+}
+
+/* New container for the popularity section */
+#popularity-section {
+    display: flex;
+    justify-content: flex-start; /* Center the overall section */
+    align-items: center;
+    gap: 50px;             /* Space between the two columns */
+    margin: 20px 0;
+}
+
+/* Left column: Buttons stacked vertically */
+#buttons-column {
+    width: 125px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    padding-left: 30px;
+}
+
+#hovercrafts-column {
+    width: 280px;
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: center;
+}
+
+
+/* Wrapper that controls scaling with a smooth transition */
+.hovercraft-wrapper {
+    display: inline-block;
+    transition: transform 0.8s ease-in-out; /* Increased duration for smoother scaling */
+    transform-origin: center center; /* Scale from the center */
+}
+
+/* Inner hovercraft element: applies the up/down animation */
+.hovercraft {
+    width: 80px;
+    height: 80px;
+    background-color: #FF5733;
+    border-radius: 50%;
+    position: relative;
+    display: inline-block;
+    /* Remove any transition on transform from here */
+    animation: hover 3s ease-in-out infinite;
+}
+
+/* Up/down animation for the inner hovercraft element */
+@keyframes hover {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
+}
+
+/* When the shrink class is added to the wrapper, scale it down */
+.hovercraft-wrapper.shrink {
+    transform: scale(0.625); /* 0.625 * 80px ≈ 50px, adjust as needed */
+}
+
+
+/* Tooltip styling for hovercrafts */
+.tooltip {
+    display: none;
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+/* Show tooltip on hover */
+.hovercraft:hover .tooltip {
+    display: block;
+    opacity: 1;
+}
+
+/* General button styling */
+button {
+    margin: 0 10px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    background-color: #FF5733;
+    color: white;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.popularity-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Optional: if you're making a circular button, ensure width/height are equal */
+    width: 80px;
+    height: 60px;
+    border-radius: 10%;
+}
+  
+
+/* Button hover effect */
+button:hover {
+    background-color: #e64a1b;
+}
+
+/* Unselected state for popularity buttons */
+.popularity-button.unselected {
+    background-color: #FF5733;
+    color: white;
+}
+
+/* Selected state for popularity buttons */
+.popularity-button.selected {
+    background-color: #d84b2c;
+    font-weight: bold;
+}
+
+/* Pie Chart & Pop Culture Text Section Adjustments */
+#pie-text-section {
+    display: flex;
+    margin: 10px 0;         /* Reduced vertical gap to bring it closer to the above section */
+    align-items: flex-start; /* Ensure both columns are top-aligned */
+    /* Ensure this container is left-aligned by not applying auto margins */
+}
+  
+#pie-chart-container {
+    width: 320px;           /* Fixed width for the pie chart container */
+    padding-left: 150px;
+    text-align: left;
+}
+  
+#pop-culture-text {
+    flex: 1;                /* Occupies the remaining horizontal space */
+    padding-left: 50px;
+    text-align: left;     /* Reduced margin so it starts closer to the pie chart container */
+    align-self: flex-start; /* Force the pop culture text to align to the top of the container */
+}
+  
+  
+  
+
+  
+
+
