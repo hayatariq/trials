@@ -1,46 +1,40 @@
-let sightingsData = [];  // global
-let lineChart;  
-let selectedDecade = null;
+// Global variables
+let sightingsData = [];
+let lineChart;
 let shapeFrequencies = {};
 let currentPopularity = 'most';
-let svg, pie, arc, color, shapeOrder, tooltip; // global pie chart variables
+let svg, pie, arc, color, shapeOrder, tooltip;
 
+// DOM Loaded listener (only initialization code)
 document.addEventListener("DOMContentLoaded", function() {
     console.log("shape.js loaded");
 
-    shapeOrder = ["light", "triangle", "circle", "disk", "fireball", "sphere", "cigar", "oval", 
-        "changing", "chevron", "cone", "cross", "cube", "cylinder", "diamond", "egg", "flash", 
+    shapeOrder = ["light", "triangle", "circle", "disk", "fireball", "sphere", "cigar", "oval",
+        "changing", "chevron", "cone", "cross", "cube", "cylinder", "diamond", "egg", "flash",
         "formation", "orb", "other", "rectangle", "star", "unknown"];
 
-    // Load CSV data
     Papa.parse('data/NUFORCdata.csv', {
         download: true,
         header: true,
         dynamicTyping: true,
         complete: function(results) {
-            results.data.forEach(row => {
-                const year = new Date(row.EventDate).getFullYear();
-                sightingsData.push({
-                    year: year,
-                    shape: row.Shape,
-                });
-            });
+            sightingsData = results.data.map(row => ({
+                year: new Date(row.EventDate).getFullYear(),
+                shape: row.Shape ? row.Shape.trim().toLowerCase() : "unknown"
+            }));
 
             createLineChart();
             createPieChart();
             updatePieChart(sightingsData);
             updateHovercrafts(currentPopularity);
-            console.log("Loaded data count:", sightingsData.length);
         }
     });
 
-    // Event listener (just once!)
-    const decadeDropdown = document.getElementById("decade-dropdown-shape");
-    decadeDropdown.addEventListener("change", filterByDecade);
+    document.getElementById("decade-dropdown-shape").addEventListener("change", filterByDecade);
 });
 
 function createPieChart() {
-    const width = 250, height = 250, radius = Math.min(width, height) / 2;
+    let width = 250, height = 250, radius = Math.min(width, height) / 2;
     color = d3.scaleOrdinal(d3.schemeCategory10);
     svg = d3.select("#pie-chart")
         .append("g")
@@ -49,8 +43,7 @@ function createPieChart() {
     pie = d3.pie().sort(null).value(d => d.value);
     arc = d3.arc().innerRadius(0).outerRadius(radius - 20);
 
-    tooltip = d3.select("body")
-        .append("div")
+    tooltip = d3.select("body").append("div")
         .style("position", "absolute")
         .style("background", "rgba(0,0,0,0.8)")
         .style("color", "white")
@@ -60,6 +53,7 @@ function createPieChart() {
         .style("font-size", "14px");
 }
 
+// Global functions (must be global, exactly as shown here!)
 function updatePieChart(filteredData) {
     let shapeCounts = {};
     filteredData.forEach(d => {
@@ -83,16 +77,13 @@ function updatePieChart(filteredData) {
 
     slices.transition().duration(500)
         .attrTween("d", function(d) {
-            const interpolate = d3.interpolate(this._current, d);
-            this._current = interpolate(1);
-            return function(t) {
-                return arc(interpolate(t));
-            };
+            const i = d3.interpolate(this._current, d);
+            this._current = i(1);
+            return t => arc(i(t));
         });
 
     slices.exit().remove();
 }
-
 
 function filterByDecade() {
     const selectedDecade = document.getElementById("decade-dropdown-shape").value;
@@ -107,11 +98,10 @@ function filterByDecade() {
         filteredData = sightingsData;
     }
 
-    // CRITICAL FIX: Recalculate shapeFrequencies here!
+    // Recalculate shapeFrequencies here explicitly!
     shapeFrequencies = {};
     filteredData.forEach(sighting => {
-        const shape = sighting.shape ? sighting.shape.trim().toLowerCase() : "unknown";
-        shapeFrequencies[shape] = (shapeFrequencies[shape] || 0) + 1;
+        shapeFrequencies[sighting.shape] = (shapeFrequencies[sighting.shape] || 0) + 1;
     });
 
     updateLineChart(filteredData);
@@ -129,18 +119,8 @@ function updateLineChart(filteredData) {
     const minYear = 1914, maxYear = 2025;
     const allYears = Array.from({length: maxYear - minYear + 1}, (_, i) => minYear + i);
     
-    lineChart.data = {
-        labels: allYears,
-        datasets: [{
-            label: 'Number of Sightings',
-            data: allYears.map(year => sightingsByYear[year] || null),
-            borderColor: '#FF5733',
-            backgroundColor: 'rgba(255, 87, 51, 0.2)',
-            fill: true,
-            tension: 0.4,
-        }]
-    };
-    
+    lineChart.data.labels = allYears;
+    lineChart.data.datasets[0].data = allYears.map(year => sightingsByYear[year] || null);
     lineChart.update();
 }
 
@@ -187,6 +167,11 @@ function updatePopCultureText(decade) {
         "2010": "The 2010s: Pop Culture",
         "2020": "The 2020s: Pop Culture"
     };
-    document.getElementById("pop-culture-text").innerHTML = `<p>${popCultureReferences[decade]}</p>`;
+    const popCultureContainer = document.getElementById("pop-culture-text");
+    popCultureContainer.innerHTML = `
+      <h3>Pop Culture References</h3>
+      <p>${popCultureReferences[decade] || popCultureReferences["All"]}</p>
+    `;
 }
+
 
