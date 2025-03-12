@@ -72,7 +72,8 @@ function updatePieChart(filteredData) {
         value: shapeCounts[shape] || 0
     }));
 
-    const slices = svg.selectAll("path").data(pie(data));
+    const slices = svg.selectAll("path")
+        .data(pie(data));
 
     slices.enter()
         .append("path")
@@ -82,13 +83,16 @@ function updatePieChart(filteredData) {
 
     slices.transition().duration(500)
         .attrTween("d", function(d) {
-            const i = d3.interpolate(this._current, d);
-            this._current = i(1);
-            return t => arc(i(t));
+            const interpolate = d3.interpolate(this._current, d);
+            this._current = interpolate(1);
+            return function(t) {
+                return arc(interpolate(t));
+            };
         });
 
     slices.exit().remove();
 }
+
 
 function filterByDecade() {
     const selectedDecade = document.getElementById("decade-dropdown-shape").value;
