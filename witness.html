@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UFO Sightings Visualization</title>
+    <link rel="stylesheet" href="css/witness.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Left Side: UFO & Witness Area -->
+        <div class="left-panel">
+            <div class="ufo-space" id="ufo-space"></div> <!-- Space for UFOs -->
+            <div class="landing-pad" id="landing-pad"></div> <!-- Oval Platform for Stickmen -->
+        </div>
+
+        <!-- Right Side: Selection Buttons -->
+        <div class="right-panel">
+            <h2>Witness & Ship Sightings Visualization</h2>
+
+            <div class="selection-container">
+                <h3>Select Number of Witnesses (Optional):</h3>
+                <div class="button-group">
+                    <button class="witness-btn" data-value="solo">Solo</button>
+                    <button class="witness-btn" data-value="smallGroup">Small Group</button>
+                    <button class="witness-btn" data-value="crowd">Crowd</button>
+                    <button class="witness-btn" data-value="none">No Selection</button>
+                </div>
+            </div>
+
+            <div class="selection-container">
+                <h3>Select Number of UFOs (Optional):</h3>
+                <div class="button-group">
+                    <button class="ship-btn" data-value="single">Single</button>
+                    <button class="ship-btn" data-value="smallGroup">Small Group</button>
+                    <button class="ship-btn" data-value="fleet">Fleet</button>
+                    <button class="ship-btn" data-value="none">No Selection</button>
+                </div>
+            </div>
+
+            <h3 id="percentage-output">Select witnesses and/or ships to see data.</h3>
+        </div>
+    </div>
+
+    <script src="js/witness.js"></script>
+</body>
+</html>
