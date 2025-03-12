@@ -3,6 +3,7 @@ let sightingsData = [];
 let lineChart;
 let shapeFrequencies = {};
 let currentPopularity = 'most';
+let pie, arc, color, shapeOrder, tooltip;
 
 // DOM Loaded listener (only initialization code)
 document.addEventListener("DOMContentLoaded", function() {
