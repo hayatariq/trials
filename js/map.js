@@ -82,7 +82,7 @@ var currentView = "all";
 function filterSightings() {
     var selectedWitnessesFilter = document.getElementById("witnesses-dropdown").value;
     var selectedShipsFilter = document.getElementById("ships-dropdown").value;
-    var selectedDecade = document.getElementById("decade-dropdown").value;
+    var selectedDecade = document.getElementById("decade-dropdown-map").value;
 
     var filteredData;
 
@@ -143,7 +143,7 @@ function changeView(viewType) {
     markersLayer.clearLayers();  // Clear existing markers
 
     // Get the selected decade to apply it with the current view
-    var selectedDecade = document.getElementById("decade-dropdown").value;
+    var selectedDecade = document.getElementById("decade-dropdown-map").value;
 
     var filteredData;
 
