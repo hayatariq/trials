@@ -3,6 +3,7 @@ let sightingsData = [];
 let lineChart;
 let shapeFrequencies = {};
 let currentPopularity = 'most';
+let svg, pie, arc, color, shapeOrder, tooltip;
 
 // DOM Loaded listener (only initialization code)
 document.addEventListener("DOMContentLoaded", function() {
@@ -33,7 +34,9 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function createPieChart() {
-    let width = 250, height = 250, radius = Math.min(width, height) / 2;
+    width = 250;
+    height = 250; 
+    radius = Math.min(width, height) / 2;
     color = d3.scaleOrdinal(d3.schemeCategory10);
     svg = d3.select("#pie-chart")
         .append("g")
