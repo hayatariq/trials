@@ -1,13 +1,12 @@
-// Global variables
-let sightingsData = [];
-let lineChart;
-let shapeFrequencies = {};
-let currentPopularity = 'most';
-let pie, arc, color, shapeOrder, tooltip;
-
-// DOM Loaded listener (only initialization code)
 document.addEventListener("DOMContentLoaded", function() {
     console.log("shape.js loaded");
+
+    // Global variables
+    let sightingsData = [];
+    let lineChart;
+    let shapeFrequencies = {};
+    let currentPopularity = 'most';
+    let pie, arc, color, shapeOrder, tooltip, svg; // <-- svg added here
 
     shapeOrder = ["light", "triangle", "circle", "disk", "fireball", "sphere", "cigar", "oval",
         "changing", "chevron", "cone", "cross", "cube", "cylinder", "diamond", "egg", "flash",
@@ -22,7 +21,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 year: new Date(row.EventDate).getFullYear(),
                 shape: row.Shape ? row.Shape.trim().toLowerCase() : "unknown"
             }));
-
+        
+            // Explicitly calculate shape frequencies initially!
+            shapeFrequencies = {};
+            sightingsData.forEach(sighting => {
+                shapeFrequencies[sighting.shape] = (shapeFrequencies[sighting.shape] || 0) + 1;
+            });
+        
             createLineChart();
             createPieChart();
             updatePieChart(sightingsData);
@@ -31,29 +36,31 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     document.getElementById("decade-dropdown-shape").addEventListener("change", filterByDecade);
-});
 
-function createPieChart() {
-    width = 250;
-    height = 250; 
-    radius = Math.min(width, height) / 2;
-    color = d3.scaleOrdinal(d3.schemeCategory10);
-    const svg = d3.select("#pie-chart")
-        .append("g")
-        .attr("transform", `translate(${width / 2}, ${height / 2})`);
+    function createPieChart() {
+        const width = 250;
+        const height = 250; 
+        const radius = Math.min(width, height) / 2;
 
-    pie = d3.pie().sort(null).value(d => d.value);
-    arc = d3.arc().innerRadius(0).outerRadius(radius - 20);
+        color = d3.scaleOrdinal(d3.schemeCategory10);
+        
+        svg = d3.select("#pie-chart")
+            .append("g")
+            .attr("transform", `translate(${width / 2}, ${height / 2})`);
 
-    tooltip = d3.select("body").append("div")
-        .style("position", "absolute")
-        .style("background", "rgba(0,0,0,0.8)")
-        .style("color", "white")
-        .style("padding", "5px 10px")
-        .style("border-radius", "5px")
-        .style("visibility", "hidden")
-        .style("font-size", "14px");
-}
+        pie = d3.pie().sort(null).value(d => d.value);
+        arc = d3.arc().innerRadius(0).outerRadius(radius - 20);
+
+        tooltip = d3.select("body").append("div")
+            .style("position", "absolute")
+            .style("background", "rgba(0,0,0,0.8)")
+            .style("color", "white")
+            .style("padding", "5px 10px")
+            .style("border-radius", "5px")
+            .style("visibility", "hidden")
+            .style("font-size", "14px");
+    }
+
 
 // Global functions (must be global, exactly as shown here!)
 function updatePieChart(filteredData) {
@@ -75,7 +82,18 @@ function updatePieChart(filteredData) {
         .append("path")
         .attr("fill", d => color(d.data.name))
         .attr("d", arc)
-        .each(function(d) { this._current = d; });
+        .each(function(d) { this._current = d; })
+        .on("mouseover", function(event, d) {
+            tooltip.style("visibility", "visible")
+                .text(`${d.data.name}: ${d.data.value} sightings`);
+        })
+        .on("mousemove", function(event) {
+            tooltip.style("top", (event.pageY - 10) + "px")
+                   .style("left", (event.pageX + 10) + "px");
+        })
+        .on("mouseout", function() {
+            tooltip.style("visibility", "hidden");
+        });
 
     slices.transition().duration(500)
         .attrTween("d", function(d) {
@@ -126,37 +144,94 @@ function updateLineChart(filteredData) {
     lineChart.update();
 }
 
+document.getElementById("most-popular").addEventListener("click", function() {
+    currentPopularity = 'most';
+    updateHovercrafts(currentPopularity);
+});
+
+document.getElementById("least-popular").addEventListener("click", function() {
+    currentPopularity = 'least';
+    updateHovercrafts(currentPopularity);
+});
+
+
 function updateHovercrafts(popularity) {
     const sortedShapes = Object.entries(shapeFrequencies)
         .sort((a, b) => b[1] - a[1])
         .map(entry => entry[0]);
-    
-    let selectedShapes = popularity === 'most' ? sortedShapes.slice(0, 3) : sortedShapes.slice(-3);
-    
-    selectedShapes.forEach((shape, index) => {
-        const hovercraft = document.getElementById(`shape-${index + 1}`);
-        const tooltip = hovercraft.querySelector('.tooltip');
-        hovercraft.setAttribute('data-sightings', shapeFrequencies[shape]);
-        tooltip.textContent = `${shape} - ${shapeFrequencies[shape]} Sightings`;
 
-        if (popularity === 'least') {
-            hovercraft.classList.add('shrink');
-        } else {
-            hovercraft.classList.remove('shrink');
-        }
+    let selectedShapes;
+    if (sortedShapes.length >= 3) {
+        selectedShapes = popularity === 'most' 
+            ? sortedShapes.slice(0, 3) 
+            : sortedShapes.slice(-3).reverse();
+    } else {
+        selectedShapes = sortedShapes;
+    }
+
+    selectedShapes.forEach((shape, index) => {
+        const count = shapeFrequencies[shape];
+
+        // Populate tooltip text
+        d3.select(`#shape-${index + 1} .tooltip`)
+            .html(`${shape.charAt(0).toUpperCase() + shape.slice(1)}: ${count} sightings`);
+
+        // Add or remove the "shrink" class based on popularity
+        d3.select(`#shape-${index + 1}`)
+            .classed("shrink", popularity === 'least');
     });
 }
 
+
+
 function createLineChart() {
     const ctx = document.getElementById('line-chart').getContext('2d');
+
+    const minYear = 1914;
+    const maxYear = 2025;
+    const allYears = Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i);
+
     lineChart = new Chart(ctx, {
         type: 'line',
-        data: { labels: [], datasets: [{ label: 'Sightings', data: [], borderColor: '#FF5733', backgroundColor: 'rgba(255,87,51,0.2)' }] },
-        options: { responsive: true }
+        data: {
+            labels: allYears,
+            datasets: [{
+                label: 'Sightings',
+                data: [],
+                borderColor: '#FF5733',
+                backgroundColor: 'rgba(255,87,51,0.2)',
+                spanGaps: true,
+                pointRadius: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,  // critical to avoid blurring/stretching
+            scales: {
+                y: {
+                    min: 0,
+                    max: 400,
+                    ticks: {
+                        stepSize: 50
+                    }
+                },
+                x: {
+                    ticks: {
+                        autoSkip: false,
+                        maxRotation: 0,
+                        callback: function(value) {
+                            const year = this.getLabelForValue(value);
+                            return year % 10 === 0 ? year : '';
+                        }
+                    }
+                }
+            }
+        }
     });
 
     updateLineChart(sightingsData);
 }
+
 
 function updatePopCultureText(decade) {
     const popCultureReferences = {
@@ -175,5 +250,7 @@ function updatePopCultureText(decade) {
       <p>${popCultureReferences[decade] || popCultureReferences["All"]}</p>
     `;
 }
+
+});
 
 
