@@ -1,256 +1,108 @@
-document.addEventListener("DOMContentLoaded", function() {
-    console.log("shape.js loaded");
+window.onload = function() {
+    // Define UFO shape symbols inside the existing SVG
+    d3.select("#shape-grid")
+        .append("defs")
+        .html(`
+            <symbol id="chevron" viewBox="0 0 100 100">
+                <polyline points="10,90 50,10 90,90" stroke="white" stroke-width="8" fill="none" />
+            </symbol>
+            <symbol id="changing" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="20" fill="white">
+                    <animate attributeName="r" values="20;30;20" dur="1.5s" repeatCount="indefinite" />
+                </circle>
+            </symbol>
+            <symbol id="cigar" viewBox="0 0 100 100">
+                <ellipse cx="50" cy="50" rx="45" ry="20" fill="white" />
+            </symbol>
+            <symbol id="circle" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="white" />
+            </symbol>
+            <symbol id="triangle" viewBox="0 0 100 100">
+                <polygon points="50,10 90,90 10,90" fill="white" />
+            </symbol>
+            <symbol id="disk" viewBox="0 0 100 100">
+                <ellipse cx="50" cy="50" rx="45" ry="25" fill="white" />
+            </symbol>
+            <symbol id="star" viewBox="0 0 100 100">
+                <polygon points="50,10 60,40 90,40 65,60 75,90 50,70 25,90 35,60 10,40 40,40" fill="white" />
+            </symbol>
+        `);
 
-    // Global variables
-    let sightingsData = [];
-    let lineChart;
-    let shapeFrequencies = {};
-    let currentPopularity = 'most';
-    let pie, arc, color, shapeOrder, tooltip, svg; // <-- svg added here
+    const ufoShapes = [
+        { shape: "chevron", sightings: 120 },
+        { shape: "changing", sightings: 90 },
+        { shape: "cigar", sightings: 60 },
+        { shape: "circle", sightings: 300 },
+        { shape: "disk", sightings: 180 },
+        { shape: "star", sightings: 75 },
+        { shape: "triangle", sightings: 250 }
+    ];
 
-    shapeOrder = ["light", "triangle", "circle", "disk", "fireball", "sphere", "cigar", "oval",
-        "changing", "chevron", "cone", "cross", "cube", "cylinder", "diamond", "egg", "flash",
-        "formation", "orb", "other", "rectangle", "star", "unknown"];
+    // Select the SVG container for the UFO sky
+    const skyContainer = d3.select("#shape-grid")
+        .attr("width", 1000)
+        .attr("height", 800)
+        .style("background", "black");
 
-    Papa.parse('data/NUFORCdata.csv', {
-        download: true,
-        header: true,
-        dynamicTyping: true,
-        complete: function(results) {
-            sightingsData = results.data.map(row => ({
-                year: new Date(row.EventDate).getFullYear(),
-                shape: row.Shape ? row.Shape.trim().toLowerCase() : "unknown"
-            }));
-        
-            // Explicitly calculate shape frequencies initially!
-            shapeFrequencies = {};
-            sightingsData.forEach(sighting => {
-                shapeFrequencies[sighting.shape] = (shapeFrequencies[sighting.shape] || 0) + 1;
-            });
-        
-            createLineChart();
-            createPieChart();
-            updatePieChart(sightingsData);
-            updateHovercrafts(currentPopularity);
-        }
-    });
+    // Scale size based on sightings
+    const sizeScale = d3.scaleLinear()
+        .domain([d3.min(ufoShapes, d => d.sightings), d3.max(ufoShapes, d => d.sightings)])
+        .range([40, 120]); // Min and max size
 
-    document.getElementById("decade-dropdown-shape").addEventListener("change", filterByDecade);
+    // Define middle area constraints
+    const centerX = 500; // Middle of the 1000px width
+    const centerY = 400; // Middle of the 800px height
+    const spreadX = 400; // How far UFOs can spread left/right
+    const spreadY = 200; // How far UFOs can spread up/down
 
-    function createPieChart() {
-        const width = 250;
-        const height = 250; 
-        const radius = Math.min(width, height) / 2;
+    // Function to generate non-overlapping positions near the center
+    function randomPosition(existingPositions, size) {
+        let x, y, isOverlapping;
+        const padding = size / 2; // Ensure large shapes get more space
 
-        color = d3.scaleOrdinal(d3.schemeCategory10);
-        
-        svg = d3.select("#pie-chart")
-            .append("g")
-            .attr("transform", `translate(${width / 2}, ${height / 2})`);
+        do {
+            x = centerX + (Math.random() * spreadX - spreadX / 2);
+            y = centerY + (Math.random() * spreadY - spreadY / 2);
+            isOverlapping = existingPositions.some(pos => 
+                Math.abs(pos.x - x) < size + padding && Math.abs(pos.y - y) < size + padding
+            );
+        } while (isOverlapping);
 
-        pie = d3.pie().sort(null).value(d => d.value);
-        arc = d3.arc().innerRadius(0).outerRadius(radius - 20);
-
-        tooltip = d3.select("body").append("div")
-            .style("position", "absolute")
-            .style("background", "rgba(0,0,0,0.8)")
-            .style("color", "white")
-            .style("padding", "5px 10px")
-            .style("border-radius", "5px")
-            .style("visibility", "hidden")
-            .style("font-size", "14px");
+        existingPositions.push({ x, y });
+        return { x, y };
     }
 
+    // Store positions to avoid overlap
+    let positions = [];
 
-// Global functions (must be global, exactly as shown here!)
-function updatePieChart(filteredData) {
-    let shapeCounts = {};
-    filteredData.forEach(d => {
-        const shape = d.shape ? d.shape.trim().toLowerCase() : "unknown";
-        shapeCounts[shape] = (shapeCounts[shape] || 0) + 1;
-    });
-
-    const data = shapeOrder.map(shape => ({
-        name: shape,
-        value: shapeCounts[shape] || 0
-    }));
-
-    const slices = svg.selectAll("path")
-        .data(pie(data));
-
-    slices.enter()
-        .append("path")
-        .attr("fill", d => color(d.data.name))
-        .attr("d", arc)
-        .each(function(d) { this._current = d; })
-        .on("mouseover", function(event, d) {
-            tooltip.style("visibility", "visible")
-                .text(`${d.data.name}: ${d.data.value} sightings`);
+    // Append UFO shapes at constrained positions
+    const ufoElements = skyContainer.selectAll(".ufo-shape")
+        .data(ufoShapes)
+        .enter()
+        .append("use")
+        .attr("xlink:href", d => `#${d.shape}`)
+        .attr("width", d => sizeScale(d.sightings))
+        .attr("height", d => sizeScale(d.sightings))
+        .each(function (d) {
+            let size = sizeScale(d.sightings);
+            let { x, y } = randomPosition(positions, size);
+            d3.select(this).attr("x", x).attr("y", y);
         })
-        .on("mousemove", function(event) {
-            tooltip.style("top", (event.pageY - 10) + "px")
-                   .style("left", (event.pageX + 10) + "px");
-        })
-        .on("mouseout", function() {
-            tooltip.style("visibility", "hidden");
-        });
+        .attr("class", "ufo-shape")
+        .style("cursor", "pointer")
+        .style("fill", "lightgray") // Ensure visibility
+        .on("click", (event, d) => updateSidebar(d));
 
-    slices.transition().duration(500)
-        .attrTween("d", function(d) {
-            const i = d3.interpolate(this._current, d);
-            this._current = i(1);
-            return t => arc(i(t));
-        });
-
-    slices.exit().remove();
-}
-
-function filterByDecade() {
-    const selectedDecade = document.getElementById("decade-dropdown-shape").value;
-    let filteredData;
-
-    if (selectedDecade === "1960") {
-        filteredData = sightingsData.filter(d => d.year < 1970);
-    } else if (selectedDecade !== "All") {
-        const decadeStart = parseInt(selectedDecade);
-        filteredData = sightingsData.filter(d => d.year >= decadeStart && d.year < decadeStart + 10);
-    } else {
-        filteredData = sightingsData;
+    // Sidebar update function
+    function updateSidebar(data) {
+        d3.select("#sidebar-content") // Target a specific div inside #sidebar
+            .html(`
+                <h3>${data.shape.charAt(0).toUpperCase() + data.shape.slice(1)} Shape</h3>
+                <p><strong>Total Sightings:</strong> ${data.sightings}</p>
+                <p><strong>Popular Decade:</strong> 1980s (example data)</p>
+                <p><strong>Famous Sighting:</strong> Example UFO Case</p>
+            `);
     }
-
-    // Recalculate shapeFrequencies here explicitly!
-    shapeFrequencies = {};
-    filteredData.forEach(sighting => {
-        shapeFrequencies[sighting.shape] = (shapeFrequencies[sighting.shape] || 0) + 1;
-    });
-
-    updateLineChart(filteredData);
-    updatePieChart(filteredData);
-    updateHovercrafts(currentPopularity);
-    updatePopCultureText(selectedDecade);
-}
-
-function updateLineChart(filteredData) {
-    const sightingsByYear = {};
-    filteredData.forEach(sighting => {
-        sightingsByYear[sighting.year] = (sightingsByYear[sighting.year] || 0) + 1;
-    });
-
-    const minYear = 1914, maxYear = 2025;
-    const allYears = Array.from({length: maxYear - minYear + 1}, (_, i) => minYear + i);
-    
-    lineChart.data.labels = allYears;
-    lineChart.data.datasets[0].data = allYears.map(year => sightingsByYear[year] || null);
-    lineChart.update();
-}
-
-document.getElementById("most-popular").addEventListener("click", function() {
-    currentPopularity = 'most';
-    updateHovercrafts(currentPopularity);
-});
-
-document.getElementById("least-popular").addEventListener("click", function() {
-    currentPopularity = 'least';
-    updateHovercrafts(currentPopularity);
-});
-
-
-function updateHovercrafts(popularity) {
-    const sortedShapes = Object.entries(shapeFrequencies)
-        .sort((a, b) => b[1] - a[1])
-        .map(entry => entry[0]);
-
-    let selectedShapes;
-    if (sortedShapes.length >= 3) {
-        selectedShapes = popularity === 'most' 
-            ? sortedShapes.slice(0, 3) 
-            : sortedShapes.slice(-3).reverse();
-    } else {
-        selectedShapes = sortedShapes;
-    }
-
-    selectedShapes.forEach((shape, index) => {
-        const count = shapeFrequencies[shape];
-
-        // Populate tooltip text
-        d3.select(`#shape-${index + 1} .tooltip`)
-            .html(`${shape.charAt(0).toUpperCase() + shape.slice(1)}: ${count} sightings`);
-
-        // Add or remove the "shrink" class based on popularity
-        d3.select(`#shape-${index + 1}`)
-            .classed("shrink", popularity === 'least');
-    });
-}
-
-
-
-function createLineChart() {
-    const ctx = document.getElementById('line-chart').getContext('2d');
-
-    const minYear = 1914;
-    const maxYear = 2025;
-    const allYears = Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i);
-
-    lineChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: allYears,
-            datasets: [{
-                label: 'Sightings',
-                data: [],
-                borderColor: '#FF5733',
-                backgroundColor: 'rgba(255,87,51,0.2)',
-                spanGaps: true,
-                pointRadius: 2,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,  // critical to avoid blurring/stretching
-            scales: {
-                y: {
-                    min: 0,
-                    max: 400,
-                    ticks: {
-                        stepSize: 50
-                    }
-                },
-                x: {
-                    ticks: {
-                        autoSkip: false,
-                        maxRotation: 0,
-                        callback: function(value) {
-                            const year = this.getLabelForValue(value);
-                            return year % 10 === 0 ? year : '';
-                        }
-                    }
-                }
-            }
-        }
-    });
-
-    updateLineChart(sightingsData);
-}
-
-
-function updatePopCultureText(decade) {
-    const popCultureReferences = {
-        "All": "General references spanning all decades.",
-        "1960": "The 1960s: Pop Culture",
-        "1970": "The 1970s: Pop Culture",
-        "1980": "The 1980s: Pop Culture",
-        "1990": "The 1990s: Pop Culture",
-        "2000": "The 2000s: Pop Culture",
-        "2010": "The 2010s: Pop Culture",
-        "2020": "The 2020s: Pop Culture"
-    };
-    const popCultureContainer = document.getElementById("pop-culture-text");
-    popCultureContainer.innerHTML = `
-      <h3>Pop Culture References</h3>
-      <p>${popCultureReferences[decade] || popCultureReferences["All"]}</p>
-    `;
-}
-
-});
+};
 
 
